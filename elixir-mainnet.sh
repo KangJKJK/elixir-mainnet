@@ -114,7 +114,6 @@ case "$choice" in
         
         read -p "설정을 변경하시겠습니까? (y/n): " change_settings
         if [[ "$change_settings" == "y" || "$change_settings" == "Y" ]]; then
-            echo "ENV=mainnet" > $ENV_FILE
             IP_ADDRESS=$(curl -s ifconfig.me)
             echo "STRATEGY_EXECUTOR_IP_ADDRESS=$IP_ADDRESS" >> $ENV_FILE
             
@@ -128,7 +127,6 @@ case "$choice" in
             echo "SIGNER_PRIVATE_KEY=$PRIVATE_KEY" >> $ENV_FILE
         fi
     else
-        echo "ENV=mainnet" > $ENV_FILE
         IP_ADDRESS=$(curl -s ifconfig.me)
         echo "STRATEGY_EXECUTOR_IP_ADDRESS=$IP_ADDRESS" >> $ENV_FILE
         
