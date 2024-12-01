@@ -11,7 +11,8 @@ NC='\033[0m' # No Color
 echo -e "${GREEN}Elixir-메인넷 노드 설치 또는 업데이트를 선택하세요.${NC}"
 echo -e "${BOLD}${YELLOW}1. 엘릭서 메인넷 노드 새로 설치${NC}"
 echo -e "${BOLD}${YELLOW}2. 엘릭서 메인넷 노드 업데이트${NC}"
-read -p "선택 (1 또는 2): " choice
+echo -e "${BOLD}${YELLOW}3. 엘릭서 메인넷 노드 삭제${NC}"
+read -p "선택 (1, 2 또는 3): " choice
 
 case "$choice" in
     1)
@@ -197,6 +198,15 @@ case "$choice" in
     docker rm elixir
     docker pull elixirprotocol/validator
     echo -e "${GREEN}대시보드사이트: https://www.elixir.xyz/validators${NC}"
+    echo -e "${GREEN}스크립트 작성자: https://t.me/kjkresearch${NC}"
+    ;;
+    
+    3)
+    echo -e "${GREEN}엘릭서 노드 삭제를 시작합니다.${NC}"
+    docker kill elixir
+    docker rm elixir
+    docker pull elixirprotocol/validator
+    echo -e "${GREEN}엘릭서 노드가 성공적으로 삭제되었습니다.${NC}"
     echo -e "${GREEN}스크립트 작성자: https://t.me/kjkresearch${NC}"
     ;;
 
