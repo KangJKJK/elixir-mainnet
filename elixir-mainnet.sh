@@ -76,6 +76,14 @@ case "$choice" in
         if [[ ! -z "$PRIVATE_KEY" && ! -z "$VALIDATOR_ADDRESS" ]]; then
             VALID_FILE=true
             echo -e "${GREEN}기존 validator_wallet.txt 파일에서 정보를 불러왔습니다.${NC}"
+            echo -e "${YELLOW}검증자 주소: ${NC}${VALIDATOR_ADDRESS}"
+            echo -e "${YELLOW}프라이빗 키: ${NC}${PRIVATE_KEY}"
+            echo ""
+            read -p "이 정보가 맞습니까? (y/n): " confirm
+            if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+                VALID_FILE=false
+                echo -e "${RED}저장된 정보를 사용하지 않습니다. 새로운 정보를 입력해주세요.${NC}"
+            fi
         fi
     fi
 
@@ -84,7 +92,7 @@ case "$choice" in
         echo -e "${RED}유효한 validator_wallet.txt 파일이 없습니다. 새로 생성합니다.${NC}"
         
         # 검증자 지갑의 프라이빗 키와 주소를 입력받아 validator_wallet.txt 파일 생성
-        read -p "검증자 지갑의 프라이빗 키를 입력하세요(0x포함): " PRIVATE_KEY
+        read -p "검증자 지갑의 프라이빗 키를 입력하세요(0x포함하지않음): " PRIVATE_KEY
         read -p "검증자 지갑 주소를 입력하세요: " VALIDATOR_ADDRESS
 
         # validator_wallet.txt 파일에 정보 저장
@@ -93,22 +101,46 @@ case "$choice" in
     fi
 
     ENV_FILE="validator.env"
+    
+    if [[ -f "$ENV_FILE" ]]; then
+        CURRENT_NAME=$(grep "STRATEGY_EXECUTOR_DISPLAY_NAME" $ENV_FILE | cut -d'=' -f2)
+        CURRENT_BENEFICIARY=$(grep "STRATEGY_EXECUTOR_BENEFICIARY" $ENV_FILE | cut -d'=' -f2)
+        CURRENT_KEY=$(grep "SIGNER_PRIVATE_KEY" $ENV_FILE | cut -d'=' -f2)
+        
+        echo -e "${YELLOW}현재 설정:${NC}"
+        echo -e "검증자 이름: ${CYAN}$CURRENT_NAME${NC}"
+        echo -e "보상 지갑 주소: ${CYAN}$CURRENT_BENEFICIARY${NC}"
+        echo -e "프라이빗 키: ${CYAN}$CURRENT_KEY${NC}"
+        
+        read -p "설정을 변경하시겠습니까? (y/n): " change_settings
+        if [[ "$change_settings" == "y" || "$change_settings" == "Y" ]]; then
+            echo "ENV=mainnet" > $ENV_FILE
+            IP_ADDRESS=$(curl -s ifconfig.me)
+            echo "STRATEGY_EXECUTOR_IP_ADDRESS=$IP_ADDRESS" >> $ENV_FILE
+            
+            read -p "검증자 이름을 입력하세요 : " DISPLAY_NAME
+            echo "STRATEGY_EXECUTOR_DISPLAY_NAME=$DISPLAY_NAME" >> $ENV_FILE
 
-    echo -e "${BOLD}${CYAN}${ENV_FILE} 파일 생성 중...${NC}"
-    echo "ENV=testnet-3" > $ENV_FILE
-    IP_ADDRESS=$(curl -s ifconfig.me)
-    echo "STRATEGY_EXECUTOR_IP_ADDRESS=$IP_ADDRESS" >> $ENV_FILE
-    echo ""
+            read -p "검증자 보상을 받을 EVM지갑 주소를 입력하세요: " BENEFICIARY
+            echo "STRATEGY_EXECUTOR_BENEFICIARY=$BENEFICIARY" >> $ENV_FILE
+            
+            PRIVATE_KEY=$(grep "Private Key:" validator_wallet.txt | awk -F': ' '{print $2}' | sed 's/^0x//')
+            echo "SIGNER_PRIVATE_KEY=$PRIVATE_KEY" >> $ENV_FILE
+        fi
+    else
+        echo "ENV=mainnet" > $ENV_FILE
+        IP_ADDRESS=$(curl -s ifconfig.me)
+        echo "STRATEGY_EXECUTOR_IP_ADDRESS=$IP_ADDRESS" >> $ENV_FILE
+        
+        read -p "검증자 이름을 입력하세요 : " DISPLAY_NAME
+        echo "STRATEGY_EXECUTOR_DISPLAY_NAME=$DISPLAY_NAME" >> $ENV_FILE
 
-    read -p "검증자 이름을 입력하세요 : " DISPLAY_NAME
-    echo "STRATEGY_EXECUTOR_DISPLAY_NAME=$DISPLAY_NAME" >> $ENV_FILE
-
-    read -p "검증자 보상을 받을 EVM지갑 주소를 입력하세요: " BENEFICIARY
-    echo "STRATEGY_EXECUTOR_BENEFICIARY=$BENEFICIARY" >> $ENV_FILE
-    echo ""
-    PRIVATE_KEY=$(grep "Private Key:" validator_wallet.txt | awk -F': ' '{print $2}' | sed 's/^0x//')
-    VALIDATOR_ADDRESS=$(grep "Address:" validator_wallet.txt | awk -F': ' '{print $2}')
-    echo "SIGNER_PRIVATE_KEY=$PRIVATE_KEY" >> $ENV_FILE
+        read -p "검증자 보상을 받을 EVM지갑 주소를 입력하세요: " BENEFICIARY
+        echo "STRATEGY_EXECUTOR_BENEFICIARY=$BENEFICIARY" >> $ENV_FILE
+        
+        PRIVATE_KEY=$(grep "Private Key:" validator_wallet.txt | awk -F': ' '{print $2}' | sed 's/^0x//')
+        echo "SIGNER_PRIVATE_KEY=$PRIVATE_KEY" >> $ENV_FILE
+    fi
 
     echo ""
     echo -e "${BOLD}${CYAN}${ENV_FILE} 파일이 다음 내용으로 생성되었습니다:${NC}"
