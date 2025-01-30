@@ -149,6 +149,10 @@ case "$choice" in
     echo -e "${BOLD}${CYAN}Elixir Protocol Validator 이미지 생성 중...${NC}"
     docker pull elixirprotocol/validator
 
+    echo -e "${BOLD}${CYAN}Docker 실행 중...${NC}"
+    docker run -d --env-file validator.env --name elixir-mainnet -p 17690:17690 --restart unless-stopped elixirprotocol/validator
+    echo ""
+
     # 현재 사용 중인 포트 확인
     used_ports=$(netstat -tuln | awk '{print $4}' | grep -o '[0-9]*$' | sort -u)
 
@@ -159,11 +163,6 @@ case "$choice" in
     done
 
     echo -e "${GREEN}모든 사용 중인 포트가 허용되었습니다.${NC}"
-
-    echo -e "${BOLD}${CYAN}Docker 실행 중...${NC}"
-    docker run -d --env-file validator.env --name elixir-mainnet -p 17690:17690 --restart unless-stopped elixirprotocol/validator
-    echo ""
-
     echo -e "${GREEN}모든 작업이 완료되었습니다. 컨트롤+A+D로 스크린을 종료해주세요.${NC}"
     echo -e "${GREEN}대시보드사이트: https://www.elixir.xyz/validators${NC}"
     echo -e "${GREEN}스크립트 작성자: https://t.me/kjkresearch${NC}"
